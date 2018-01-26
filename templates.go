@@ -9,168 +9,167 @@ var templates = typewriter.TemplateSlice{
 var set = &typewriter.Template{
 	Name: "Set",
 	Text: `
-// {{.Name}}Set is the primary type that represents a set
-type {{.Name}}Set map[{{.Pointer}}{{.Name}}]struct{}
-
-// New{{.Name}}Set creates and returns a reference to an empty set.
-func New{{.Name}}Set(a ...{{.Pointer}}{{.Name}}) {{.Name}}Set {
-	s := make({{.Name}}Set)
-	for _, i := range a {
-		s.Add(i)
-	}
-	return s
+type {{.Name}}Set interface {
+    ToSlice () []{{.Name}}
+    Add ({{.Name}}) bool
+    Remove ({{.Name}}) bool
+    Contains ({{.Name}}) bool
+    Union ({{.Name}}Set) {{.Name}}Set
+    Intersect ({{.Name}}Set) {{.Name}}Set
+    Difference ({{.Name}}Set) {{.Name}}Set
+    Size () int
+    Iterator () <-chan {{.Name}}
+    Equals (interface{}) bool
+    Clear ()
+}
+	
+type {{.Name}}SetImpl struct {
+    elements []{{.Name}}
 }
 
-// ToSlice returns the elements of the current set as a slice
-func (set {{.Name}}Set) ToSlice() []{{.Pointer}}{{.Name}} {
-	var s []{{.Pointer}}{{.Name}}
-	for v := range set {
-		s = append(s, v)
-	}
-	return s
+func New{{.Name}}Set (es ...{{.Name}}) {{.Name}}Set {
+    s := &{{.Name}}SetImpl{[]{{.Name}}{}}
+
+    for _, e := range es {
+        s.Add(e)
+    }
+
+    return s
 }
 
-// Add adds an item to the current set if it doesn't already exist in the set.
-func (set {{.Name}}Set) Add(i {{.Pointer}}{{.Name}}) bool {
-	_, found := set[i]
-	set[i] = struct{}{}
-	return !found //False if it existed already
+func (this *{{.Name}}SetImpl) ToSlice () []{{.Name}} {
+    s := make([]{{.Name}}, len(this.elements))
+    copy(s, this.elements)
+
+    return s
 }
 
-// Contains determines if a given item is already in the set.
-func (set {{.Name}}Set) Contains(i {{.Pointer}}{{.Name}}) bool {
-	_, found := set[i]
-	return found
+func (this *{{.Name}}SetImpl) find (e {{.Name}}) ({{.Name}}, int, bool) {
+    for i, el := range this.elements {
+        if el.Equals(e) {
+            return el, i, true
+        }
+    }
+
+    return nil, -1, false
 }
 
-// ContainsAll determines if the given items are all in the set
-func (set {{.Name}}Set) ContainsAll(i ...{{.Pointer}}{{.Name}}) bool {
-	for _, v := range i {
-		if !set.Contains(v) {
-			return false
-		}
-	}
-	return true
+func (this *{{.Name}}SetImpl) Add (e {{.Name}}) bool {
+    _, i, found := this.find(e)
+
+    if found {
+        this.elements[i] = e
+    } else {
+        this.elements = append(this.elements, e)
+    }
+
+    return !found
 }
 
-// IsSubset determines if every item in the other set is in this set.
-func (set {{.Name}}Set) IsSubset(other {{.Name}}Set) bool {
-	for elem := range set {
-		if !other.Contains(elem) {
-			return false
-		}
-	}
-	return true
+func (this *{{.Name}}SetImpl) Remove (e {{.Name}}) bool {
+    _, i, found := this.find(e)
+
+    if found {
+        l := len(this.elements) - 1
+        this.elements[i] = this.elements[l]
+        this.elements[l] = nil
+        this.elements = this.elements[:l]
+    }
+
+    return found
 }
 
-// IsSuperset determines if every item of this set is in the other set.
-func (set {{.Name}}Set) IsSuperset(other {{.Name}}Set) bool {
-	return other.IsSubset(set)
+func (this *{{.Name}}SetImpl) Contains (e {{.Name}}) bool {
+    _, _, found := this.find(e)
+    return found
 }
 
-// Union returns a new set with all items in both sets.
-func (set {{.Name}}Set) Union(other {{.Name}}Set) {{.Name}}Set {
-	unionedSet := New{{.Name}}Set()
+func (this *{{.Name}}SetImpl) Union (other {{.Name}}Set) {{.Name}}Set {
+    var s {{.Name}}Set
+    var els []{{.Name}}
 
-	for elem := range set {
-		unionedSet.Add(elem)
-	}
-	for elem := range other {
-		unionedSet.Add(elem)
-	}
-	return unionedSet
+    if this.Size() > other.Size() {
+        s = New{{.Name}}Set(this.elements...)
+        els = other.ToSlice()
+    } else {
+        s = New{{.Name}}Set(other.ToSlice()...)
+        els = this.elements
+    }
+
+    for _, e := range els {
+        s.Add(e)
+    }
+
+    return s
 }
 
-// Intersect returns a new set with items that exist only in both sets.
-func (set {{.Name}}Set) Intersect(other {{.Name}}Set) {{.Name}}Set {
-	intersection := New{{.Name}}Set()
-	// loop over smaller set
-	if set.Cardinality() < other.Cardinality() {
-		for elem := range set {
-			if other.Contains(elem) {
-				intersection.Add(elem)
-			}
-		}
-	} else {
-		for elem := range other {
-			if set.Contains(elem) {
-				intersection.Add(elem)
-			}
-		}
-	}
-	return intersection
+func (this *{{.Name}}SetImpl) Intersect (other {{.Name}}Set) {{.Name}}Set {
+    var els []{{.Name}}
+    s := New{{.Name}}Set()
+
+    if this.Size() < other.Size() {
+        els = this.elements
+    } else {
+        els = other.ToSlice()
+        other = this
+    }
+
+    for _, e := range els {
+        if other.Contains(e) {
+            s.Add(e)
+        }
+    }
+
+    return s
 }
 
-// Difference returns a new set with items in the current set but not in the other set
-func (set {{.Name}}Set) Difference(other {{.Name}}Set) {{.Name}}Set {
-	differencedSet := New{{.Name}}Set()
-	for elem := range set {
-		if !other.Contains(elem) {
-			differencedSet.Add(elem)
-		}
-	}
-	return differencedSet
+func (this *{{.Name}}SetImpl) Difference (other {{.Name}}Set) {{.Name}}Set {
+    s := New{{.Name}}Set()
+
+    for _, e := range this.elements {
+        if !other.Contains(e) {
+            s.Add(e)
+        }
+    }
+
+    return s
 }
 
-// SymmetricDifference returns a new set with items in the current set or the other set but not in both.
-func (set {{.Name}}Set) SymmetricDifference(other {{.Name}}Set) {{.Name}}Set {
-	aDiff := set.Difference(other)
-	bDiff := other.Difference(set)
-	return aDiff.Union(bDiff)
+func (this *{{.Name}}SetImpl) Iterator () <-chan {{.Name}} {
+    ch := make(chan {{.Name}})
+
+    go func() {
+        for _, e := range this.elements {
+            ch <- e
+        }
+        close(ch)
+    }()
+
+    return ch
 }
 
-// Clear clears the entire set to be the empty set.
-func (set *{{.Name}}Set) Clear() {
-	*set = make({{.Name}}Set)
+func (this *{{.Name}}SetImpl) Clear () {
+    this.elements = []{{.Name}}{}
 }
 
-// Remove allows the removal of a single item in the set.
-func (set {{.Name}}Set) Remove(i {{.Pointer}}{{.Name}}) {
-	delete(set, i)
+func (this *{{.Name}}SetImpl) Equals (other interface{}) bool {
+    if other, ok := other.({{.Name}}Set); ok && this.Size() == other.Size() {
+        for _, e := range this.elements {
+            if !other.Contains(e) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    return false
 }
 
-// Cardinality returns how many items are currently in the set.
-func (set {{.Name}}Set) Cardinality() int {
-	return len(set)
-}
-
-// Iter returns a channel of type {{.Pointer}}{{.Name}} that you can range over.
-func (set {{.Name}}Set) Iter() <-chan {{.Pointer}}{{.Name}} {
-	ch := make(chan {{.Pointer}}{{.Name}})
-	go func() {
-		for elem := range set {
-			ch <- elem
-		}
-		close(ch)
-	}()
-
-	return ch
-}
-
-// Equal determines if two sets are equal to each other.
-// If they both are the same size and have the same items they are considered equal.
-// Order of items is not relevent for sets to be equal.
-func (set {{.Name}}Set) Equal(other {{.Name}}Set) bool {
-	if set.Cardinality() != other.Cardinality() {
-		return false
-	}
-	for elem := range set {
-		if !other.Contains(elem) {
-			return false
-		}
-	}
-	return true
-}
-
-// Clone returns a clone of the set.
-// Does NOT clone the underlying elements.
-func (set {{.Name}}Set) Clone() {{.Name}}Set {
-	clonedSet := New{{.Name}}Set()
-	for elem := range set {
-		clonedSet.Add(elem)
-	}
-	return clonedSet
+func (this *{{.Name}}SetImpl) Size () int {
+    return len(this.elements)
 }
 `,
 	TypeConstraint: typewriter.Constraint{Comparable: true},
 }
+

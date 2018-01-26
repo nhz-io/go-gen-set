@@ -2,7 +2,6 @@ package set
 
 import (
 	"io"
-
 	"github.com/clipperhouse/typewriter"
 )
 
@@ -34,15 +33,6 @@ func (sw *SetWriter) Write(w io.Writer, t typewriter.Type) error {
 	if !found {
 		// nothing to be done
 		return nil
-	}
-
-	license := `// Set is a modification of https://github.com/deckarep/golang-set
-// The MIT License (MIT)
-// Copyright (c) 2013 Ralph Caraveo (deckarep@gmail.com)
-`
-
-	if _, err := w.Write([]byte(license)); err != nil {
-		return err
 	}
 
 	tmpl, err := templates.ByTag(t, tag)

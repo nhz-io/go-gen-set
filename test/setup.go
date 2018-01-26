@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	_ "github.com/clipperhouse/set"
+	_ "github.com/nhz-io/go-gen-set"
 	"github.com/clipperhouse/typewriter"
 )
 
