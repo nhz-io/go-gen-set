@@ -8,6 +8,7 @@ type ThingSet interface {
 	ToSlice() []Thing
 	Add(Thing) bool
 	Remove(Thing) bool
+	Find(Thing) Thing
 	Contains(Thing) bool
 	Union(ThingSet) ThingSet
 	Intersect(ThingSet) ThingSet
@@ -47,6 +48,11 @@ func (this *ThingSetImpl) find(e Thing) (Thing, int, bool) {
 	}
 
 	return nil, -1, false
+}
+
+func (this *ThingSetImpl) Find(e Thing) Thing {
+	el, _, _ := this.find(e)
+	return el
 }
 
 func (this *ThingSetImpl) Add(e Thing) bool {

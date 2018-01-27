@@ -48,6 +48,20 @@ func Test_ThingSetRemove(t *testing.T) {
     }
 }
 
+func Test_EntitySetFind(t *testing.T) {
+    s := NewThingSet()
+
+    s.Add(NumThing(1))
+
+    if !NumThing(1).Equals(s.Find(NumThing(1))) {
+        t.Error("EntitySet.Find(existing) should return value")
+    }
+
+    if s.Find(NumThing(2)) != nil {
+        t.Error("EntitySet.Find(nonExisting) should return nil")
+    }
+}
+
 func Test_ThingSetContains(t *testing.T) {
     s := NewThingSet()
 

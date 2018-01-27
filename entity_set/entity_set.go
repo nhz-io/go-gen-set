@@ -7,6 +7,7 @@ type Entity interface {
 type EntitySet interface {
     ToSlice () []Entity
     Add (Entity) bool
+    Find (Entity) Entity
     Remove (Entity) bool
     Contains (Entity) bool
     Union (EntitySet) EntitySet
@@ -47,6 +48,11 @@ func (this *EntitySetImpl) find (e Entity) (Entity, int, bool) {
     }
 
     return nil, -1, false
+}
+
+func (this *EntitySetImpl) Find (e Entity) Entity {
+    el, _, _ := this.find(e)
+    return el
 }
 
 func (this *EntitySetImpl) Add (e Entity) bool {

@@ -57,6 +57,20 @@ func Test_EntitySetRemove(t *testing.T) {
     }
 }
 
+func Test_EntitySetFind(t *testing.T) {
+    s := set.NewEntitySet()
+
+    s.Add(num(1))
+
+    if !num(1).Equals(s.Find(num(1))) {
+        t.Error("EntitySet.Find(existing) should return value")
+    }
+
+    if s.Find(num(2)) != nil {
+        t.Error("EntitySet.Find(nonExisting) should return nil")
+    }
+}
+
 func Test_EntitySetContains(t *testing.T) {
     s := set.NewEntitySet()
 

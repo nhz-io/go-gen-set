@@ -13,6 +13,7 @@ type {{.Name}}Set interface {
     ToSlice () []{{.Name}}
     Add ({{.Name}}) bool
     Remove ({{.Name}}) bool
+    Find ({{.Name}}) {{.Name}}
     Contains ({{.Name}}) bool
     Union ({{.Name}}Set) {{.Name}}Set
     Intersect ({{.Name}}Set) {{.Name}}Set
@@ -52,6 +53,11 @@ func (this *{{.Name}}SetImpl) find (e {{.Name}}) ({{.Name}}, int, bool) {
     }
 
     return nil, -1, false
+}
+	
+func (this *{{.Name}}SetImpl) Find (e {{.Name}}) {{.Name}} {
+	el, _, _ := this.find(e)
+	return el
 }
 
 func (this *{{.Name}}SetImpl) Add (e {{.Name}}) bool {
