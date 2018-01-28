@@ -71,6 +71,18 @@ func Test_EntitySetFind(t *testing.T) {
     }
 }
 
+func Test_EntitySetFindBy(t *testing.T) {
+    s := set.NewEntitySet(num(1), num(2), num(3))
+
+    if !num(2).Equals(s.FindBy(func (_ set.EntitySet, e set.Entity) bool { return num(2).Equals(e) })) {
+        t.Error("EntitySet.FindBy(func) should return correct value")
+    }
+
+    if s.FindBy(func (_ set.EntitySet, e set.Entity) bool { return num(4).Equals(e) }) != nil {
+        t.Error("EntitySet.FindBy(func) should return nil when nothing found")
+    }
+}
+
 func Test_EntitySetFilter(t *testing.T) {
     s := set.NewEntitySet(num(1), num(2), num(3), num(4))
     s = s.Filter(func (_ set.EntitySet, e set.Entity) bool {

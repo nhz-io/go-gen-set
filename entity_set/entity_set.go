@@ -8,6 +8,7 @@ type EntitySet interface {
     ToSlice () []Entity
     Add (Entity) bool
     Find (Entity) Entity
+    FindBy (func (EntitySet, Entity) bool) Entity
     Filter (func (EntitySet, Entity) bool) EntitySet
     Remove (Entity) bool
     Contains (Entity) bool
@@ -54,6 +55,16 @@ func (this *EntitySetImpl) find (e Entity) (Entity, int, bool) {
 func (this *EntitySetImpl) Find (e Entity) Entity {
     el, _, _ := this.find(e)
     return el
+}
+
+func (this *EntitySetImpl) FindBy (f func (EntitySet, Entity) bool) Entity {
+    for _, el := range this.elements {
+        if f(this, el) {
+            return el
+        }
+    }
+
+    return nil
 }
 
 func (this *EntitySetImpl) Filter (f func (EntitySet, Entity) bool) EntitySet {

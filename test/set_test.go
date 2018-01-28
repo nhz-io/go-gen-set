@@ -62,6 +62,18 @@ func Test_ThingSetFind(t *testing.T) {
     }
 }
 
+func Test_ThingSetFindBy(t *testing.T) {
+    s := NewThingSet(NumThing(1), NumThing(2), NumThing(3))
+
+    if !NumThing(2).Equals(s.FindBy(func (_ ThingSet, e Thing) bool { return NumThing(2).Equals(e) })) {
+        t.Error("ThingSet.FindBy(func) should return correct value")
+    }
+
+    if s.FindBy(func (_ ThingSet, e Thing) bool { return NumThing(4).Equals(e) }) != nil {
+        t.Error("ThingSet.FindBy(func) should return nil when nothing found")
+    }
+}
+
 func Test_ThingSetFilter(t *testing.T) {
     s := NewThingSet(NumThing(1), NumThing(2), NumThing(3), NumThing(4))
     s = s.Filter(func (_ ThingSet, e Thing) bool {
