@@ -9,6 +9,7 @@ type ThingSet interface {
 	Add(Thing) bool
 	Remove(Thing) bool
 	Find(Thing) Thing
+	Filter(func(ThingSet, Thing) bool) ThingSet
 	Contains(Thing) bool
 	Union(ThingSet) ThingSet
 	Intersect(ThingSet) ThingSet
@@ -53,6 +54,18 @@ func (this *ThingSetImpl) find(e Thing) (Thing, int, bool) {
 func (this *ThingSetImpl) Find(e Thing) Thing {
 	el, _, _ := this.find(e)
 	return el
+}
+
+func (this *ThingSetImpl) Filter(f func(ThingSet, Thing) bool) ThingSet {
+	s := NewThingSet()
+
+	for _, el := range this.elements {
+		if f(this, el) {
+			s.Add(el)
+		}
+	}
+
+	return s
 }
 
 func (this *ThingSetImpl) Add(e Thing) bool {

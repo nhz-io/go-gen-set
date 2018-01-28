@@ -48,7 +48,7 @@ func Test_ThingSetRemove(t *testing.T) {
     }
 }
 
-func Test_EntitySetFind(t *testing.T) {
+func Test_ThingSetFind(t *testing.T) {
     s := NewThingSet()
 
     s.Add(NumThing(1))
@@ -59,6 +59,17 @@ func Test_EntitySetFind(t *testing.T) {
 
     if s.Find(NumThing(2)) != nil {
         t.Error("EntitySet.Find(nonExisting) should return nil")
+    }
+}
+
+func Test_ThingSetFilter(t *testing.T) {
+    s := NewThingSet(NumThing(1), NumThing(2), NumThing(3), NumThing(4))
+    s = s.Filter(func (_ ThingSet, e Thing) bool {
+        return NumThing(2).Equals(e) || NumThing(3).Equals(e)
+    })
+
+    if !s.Equals(NewThingSet(NumThing(2), NumThing(3))) {
+        t.Error("EntitySet.Filter(func) should return filtered set")
     }
 }
 
