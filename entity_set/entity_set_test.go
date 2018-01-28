@@ -71,6 +71,17 @@ func Test_EntitySetFind(t *testing.T) {
     }
 }
 
+func Test_EntitySetFilter(t *testing.T) {
+    s := set.NewEntitySet(num(1), num(2), num(3), num(4))
+    s = s.Filter(func (_ set.EntitySet, e set.Entity) bool {
+        return num(2).Equals(e) || num(3).Equals(e)
+    })
+
+    if !s.Equals(set.NewEntitySet(num(2), num(3))) {
+        t.Error("EntitySet.Filter(func) should return filtered set")
+    }
+}
+
 func Test_EntitySetContains(t *testing.T) {
     s := set.NewEntitySet()
 

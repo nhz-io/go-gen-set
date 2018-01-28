@@ -14,6 +14,7 @@ type {{.Name}}Set interface {
     Add ({{.Name}}) bool
     Remove ({{.Name}}) bool
     Find ({{.Name}}) {{.Name}}
+    Filter (func ({{.Name}}Set, {{.Name}}) bool) {{.Name}}Set
     Contains ({{.Name}}) bool
     Union ({{.Name}}Set) {{.Name}}Set
     Intersect ({{.Name}}Set) {{.Name}}Set
@@ -58,6 +59,18 @@ func (this *{{.Name}}SetImpl) find (e {{.Name}}) ({{.Name}}, int, bool) {
 func (this *{{.Name}}SetImpl) Find (e {{.Name}}) {{.Name}} {
 	el, _, _ := this.find(e)
 	return el
+}
+	
+func (this *{{.Name}}SetImpl) Filter (f func ({{.Name}}Set, {{.Name}}) bool) {{.Name}}Set {
+    s := New{{.Name}}Set()
+
+    for _, el := range this.elements {
+        if f(this, el) {
+            s.Add(el)
+        }
+    }
+    
+    return s
 }
 
 func (this *{{.Name}}SetImpl) Add (e {{.Name}}) bool {
